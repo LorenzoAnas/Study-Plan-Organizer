@@ -1,0 +1,47 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "clean",
+			"command": "mvn clean",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "create maven project",
+			"type": "shell",
+			"command": "mvn archetype:generate -DarchetypeArtifactId=maven-archetype-quickstart -DgroupId=com.spo -DartifactId=studyhelper -DinteractiveMode=false",
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "compile",
+			"command": "mvn compile",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"type": "shell",
+			"label": "test",
+			"command": "mvn test",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"type": "shell",
+			"label": "install",
+			"command": "mvn install",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}
