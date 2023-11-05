@@ -14,6 +14,7 @@ public class Project {
         this.tasks = tasks;
     }
 
+    // Getters
     public String getName() {
         return name;
     }
@@ -30,7 +31,6 @@ public class Project {
         return (int) ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
     }
 
-
     public double getTaskDayRatio() {
         int daysLeft = getDaysLeft();
         if (daysLeft == 0) {
@@ -39,6 +39,25 @@ public class Project {
             return (double) tasks / daysLeft;
         }
     }
+
+    // Setters
+    public void setDueDate(LocalDate dueDate) {
+    this.dueDate = dueDate;
+    }
+
+    public void setTasks(int tasks) {
+        this.tasks = tasks;
+    }   
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
+    public String toString() {
+        return name + " " + dueDate + " " + tasks;
+    }
+
 }
 
 

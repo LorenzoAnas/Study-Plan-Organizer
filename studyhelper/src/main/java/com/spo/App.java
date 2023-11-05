@@ -2,6 +2,7 @@ package com.spo;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -45,10 +47,10 @@ import com.spo.model.Project;
 
 /**
  * The App class is the main class of the Study Plan Organizer application.
- * It creates a GUI that allows the user to manage projects and tasks.
+ * It creates a GUI that allows the user to manage projects.
  * The GUI displays a list of projects on the left side, and project details on the right side.
- * The user can add, delete, and edit projects and tasks.
- * The application stores the projects and tasks in a CSV file.
+ * The user can add, delete, and edit projects.
+ * The application stores the projects in a CSV file.
  */
 public class App {
     public static class ProjectManager {
@@ -87,9 +89,11 @@ public class App {
             JPanel labelsPanel = new JPanel();
             labelsPanel.setLayout(new BoxLayout(labelsPanel, BoxLayout.Y_AXIS));
 
-            Border border = BorderFactory.createLineBorder(Color.BLACK, 1);
-
+            // Border and Font for Labels
+            Border border = BorderFactory.createLineBorder(Color.BLACK, 2);
             Font font = new Font("Arial", Font.BOLD, 18);
+
+            // Labels
             daysLeftLabel = new JLabel("Days Left: "); 
             daysLeftLabel.setFont(font);
             daysLeftLabel.setBorder(border);
@@ -99,26 +103,31 @@ public class App {
             tasksLeftLabel.setFont(font);
             tasksLeftLabel.setBorder(border);
 
-
             ratioLabel = new JLabel("Task/Days Ratio: "); 
             ratioLabel.setFont(font);
             ratioLabel.setBorder(border);
 
-
-            JButton addProjectButton = new JButton("+"); 
+            // Add Project Button
+            JButton addProjectButton = new JButton("+ New Project"); 
             addProjectButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     showNewProjectDialog();
                 }
             });
+
+            // Add labels to labelsPanel with 10 pixel vertical margin
             labelsPanel.add(daysLeftLabel); 
+            labelsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
             labelsPanel.add(tasksLeftLabel);
+            labelsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
             labelsPanel.add(ratioLabel);
+            labelsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
             labelsPanel.add(addProjectButton);
 
             projectDetailsPanel.add(labelsPanel, BorderLayout.CENTER);
 
+            // Add projectList and projectDetailsPanel to mainFrame
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(projectList), projectDetailsPanel);
             splitPane.setOneTouchExpandable(true);
             splitPane.setDividerLocation(100);
@@ -168,6 +177,15 @@ public class App {
                 }
             });
 
+            JMenuItem editProjectMenuItem = new JMenuItem("Edit Selected Project");
+            editProjectMenuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showEditProjectDialog();
+                }
+            });
+
+            contextMenu.add(editProjectMenuItem);
             contextMenu.add(addProjectMenuItem);
             contextMenu.add(deleteProjectMenuItem);
             contextMenu.show(projectList, evt.getX(), evt.getY());
@@ -220,6 +238,7 @@ public class App {
                     }
                 }
             });
+
             buttonPanel.add(createButton);
             JButton cancelButton = new JButton("Cancel");
             cancelButton.addActionListener(new ActionListener() {
@@ -228,10 +247,80 @@ public class App {
                     newProjectDialog.dispose();
                 }
             });
+
             buttonPanel.add(cancelButton);
             newProjectDialog.add(buttonPanel, BorderLayout.SOUTH);
 
             newProjectDialog.setVisible(true);
+        }
+
+        private void showEditProjectDialog() {
+            int selectedIndex = projectList.getSelectedIndex();
+            if (selectedIndex != -1) {
+                Project project = projects.get(selectedIndex);
+                // Open a dialog similar to the "New Project" dialog, but pre-filled with the selected project's details
+                JDialog editDialog = new JDialog(mainFrame, "Edit Project", true);
+                editDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                editDialog.setLayout(new BorderLayout());
+
+                JPanel inputPanel = new JPanel();
+                inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+                inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+                JLabel nameLabel = new JLabel("Name:");
+                nameLabel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(nameLabel);
+
+                JTextField nameField = new JTextField(project.getName());
+                nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, nameField.getPreferredSize().height));
+                nameField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(nameField);
+
+                JLabel dueDateLabel = new JLabel("Due Date (yyyy-MM-dd):");
+                dueDateLabel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(dueDateLabel);
+
+                JTextField dueDateField = new JTextField(project.getDueDate().format(dateFormatter));
+                dueDateField.setMaximumSize(new Dimension(Integer.MAX_VALUE, dueDateField.getPreferredSize().height));
+                dueDateField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(dueDateField);
+
+                JLabel tasksLabel = new JLabel("Tasks:");
+                tasksLabel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(tasksLabel);
+
+                JTextField tasksField = new JTextField(Integer.toString(project.getTasks()));
+                tasksField.setMaximumSize(new Dimension(Integer.MAX_VALUE, tasksField.getPreferredSize().height));
+                tasksField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(tasksField);
+
+                JButton saveButton = new JButton("Save");
+                saveButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        String name = nameField.getText();
+                        try {
+                            LocalDate dueDate = LocalDate.parse(dueDateField.getText(), dateFormatter);
+                            project.setName(name);
+                            project.setDueDate(dueDate);
+                            project.setTasks(Integer.parseInt(tasksField.getText()));
+                            listModel.set(selectedIndex, name); 
+                            saveProjects();
+                            editDialog.dispose();
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(editDialog, "Invalid date format. Please use the format dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                });
+                saveButton.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                inputPanel.add(saveButton);
+
+                editDialog.add(inputPanel, BorderLayout.CENTER);
+                editDialog.pack();
+                editDialog.setLocationRelativeTo(mainFrame);
+                editDialog.setVisible(true);
+            }
         }
 
         private void showProjectDetails() {
