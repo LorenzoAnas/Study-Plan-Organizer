@@ -1,24 +1,20 @@
 package com.spo.model;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
-
+import java.time.temporal.ChronoUnit;
 
 public class Project {
     private String name;
     private LocalDate dueDate;
     private int tasks;
-    private List<Task> tasksList;
 
     public Project(String name, LocalDate dueDate, int tasks) {
         this.name = name;
         this.dueDate = dueDate;
         this.tasks = tasks;
-        this.tasksList = new ArrayList<>();
     }
 
+    // Getters
     public String getName() {
         return name;
     }
@@ -31,30 +27,37 @@ public class Project {
         return tasks;
     }
 
-    public List<Task> getTasksList() {
-        return tasksList;
-    }
-
     public int getDaysLeft() {
-        return (int) LocalDate.now().until(dueDate).getDays();
-    }
-
-    public int getTasksLeft() {
-        return tasksList.size();
+        return (int) ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
     }
 
     public double getTaskDayRatio() {
         int daysLeft = getDaysLeft();
         if (daysLeft == 0) {
-            return tasksList.size();
+            return tasks;
         } else {
-            return (double) tasksList.size() / daysLeft;
+            return (double) tasks / daysLeft;
         }
     }
 
-    public void addTask(Task task) {
-        tasksList.add(task);
+    // Setters
+    public void setDueDate(LocalDate dueDate) {
+    this.dueDate = dueDate;
     }
+
+    public void setTasks(int tasks) {
+        this.tasks = tasks;
+    }   
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
+    public String toString() {
+        return name + " " + dueDate + " " + tasks;
+    }
+
 }
 
 

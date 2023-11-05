@@ -1,6 +1,10 @@
 package com.spo;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -15,8 +19,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -26,17 +35,22 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.spo.model.Project;
-import com.spo.model.Task;
 
 /**
  * The App class is the main class of the Study Plan Organizer application.
- * It creates a GUI that allows the user to manage projects and tasks.
+ * It creates a GUI that allows the user to manage projects.
  * The GUI displays a list of projects on the left side, and project details on the right side.
- * The user can add, delete, and edit projects and tasks.
- * The application stores the projects and tasks in a CSV file.
+ * The user can add, delete, and edit projects.
+ * The application stores the projects in a CSV file.
  */
 public class App {
     public static class ProjectManager {
@@ -52,9 +66,11 @@ public class App {
             mainFrame.setSize(600, 400);
             mainFrame.setLayout(new BorderLayout());
 
+            ((JComponent) mainFrame.getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
+
             // Initialize Folder List
             listModel = new DefaultListModel<>();
-            projectList = new JList<>(listModel);
+            projectList = new JList<>(listModel); 
             projectList.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent evt) {
                     if (SwingUtilities.isRightMouseButton(evt)) {
@@ -64,26 +80,58 @@ public class App {
                     }
                 }
             });
-
-            mainFrame.add(new JScrollPane(projectList), BorderLayout.WEST);
+       
 
             // Project Details
             JPanel projectDetailsPanel = new JPanel();
-            daysLeftLabel = new JLabel("Days Left: ...");
-            tasksLeftLabel = new JLabel("Tasks Left: ...");
-            ratioLabel = new JLabel("Task/Days Ratio: ...");
-            JButton addTaskButton = new JButton("+");
-            addTaskButton.addActionListener(new ActionListener() {
+            projectDetailsPanel.setLayout(new BorderLayout());
+
+            JPanel labelsPanel = new JPanel();
+            labelsPanel.setLayout(new BoxLayout(labelsPanel, BoxLayout.Y_AXIS));
+
+            // Border and Font for Labels
+            Border border = BorderFactory.createLineBorder(Color.BLACK, 2);
+            Font font = new Font("Arial", Font.BOLD, 18);
+
+            // Labels
+            daysLeftLabel = new JLabel("Days Left: "); 
+            daysLeftLabel.setFont(font);
+            daysLeftLabel.setBorder(border);
+
+
+            tasksLeftLabel = new JLabel("Tasks Left: "); 
+            tasksLeftLabel.setFont(font);
+            tasksLeftLabel.setBorder(border);
+
+            ratioLabel = new JLabel("Task/Days Ratio: "); 
+            ratioLabel.setFont(font);
+            ratioLabel.setBorder(border);
+
+            // Add Project Button
+            JButton addProjectButton = new JButton("+ New Project"); 
+            addProjectButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    showNewTaskDialog();
+                    showNewProjectDialog();
                 }
             });
-            projectDetailsPanel.add(daysLeftLabel);
-            projectDetailsPanel.add(tasksLeftLabel);
-            projectDetailsPanel.add(ratioLabel);
-            projectDetailsPanel.add(addTaskButton);
-            mainFrame.add(projectDetailsPanel, BorderLayout.CENTER);
+
+            // Add labels to labelsPanel with 10 pixel vertical margin
+            labelsPanel.add(daysLeftLabel); 
+            labelsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            labelsPanel.add(tasksLeftLabel);
+            labelsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            labelsPanel.add(ratioLabel);
+            labelsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            labelsPanel.add(addProjectButton);
+
+            projectDetailsPanel.add(labelsPanel, BorderLayout.CENTER);
+
+            // Add projectList and projectDetailsPanel to mainFrame
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(projectList), projectDetailsPanel);
+            splitPane.setOneTouchExpandable(true);
+            splitPane.setDividerLocation(100);
+            mainFrame.add(splitPane, BorderLayout.CENTER);   
 
             // Date Display
             JPanel datePanel = new JPanel();
@@ -97,7 +145,7 @@ public class App {
             projects = new ArrayList<>();
             loadProjects();
             for (Project project : projects) {
-                listModel.addElement(project.getName());
+                listModel.addElement(project.getName()); 
             }
 
             mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -129,6 +177,15 @@ public class App {
                 }
             });
 
+            JMenuItem editProjectMenuItem = new JMenuItem("Edit Selected Project");
+            editProjectMenuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showEditProjectDialog();
+                }
+            });
+
+            contextMenu.add(editProjectMenuItem);
             contextMenu.add(addProjectMenuItem);
             contextMenu.add(deleteProjectMenuItem);
             contextMenu.show(projectList, evt.getX(), evt.getY());
@@ -140,7 +197,7 @@ public class App {
             newProjectDialog.setLayout(new BorderLayout());
 
             JPanel inputPanel = new JPanel();
-            inputPanel.setLayout(null);
+            inputPanel.setLayout(new GridLayout(3, 2, 10, 10));
             JLabel nameLabel = new JLabel("Name:");
             nameLabel.setBounds(10, 10, 80, 25);
             inputPanel.add(nameLabel);
@@ -177,10 +234,11 @@ public class App {
                         saveProjects();
                         newProjectDialog.dispose();
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(newProjectDialog, "Invalid date format. Please use the format dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(newProjectDialog, "Invalid date format. Please use the format dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE); // fix: add error message, it doesn't show
                     }
                 }
             });
+
             buttonPanel.add(createButton);
             JButton cancelButton = new JButton("Cancel");
             cancelButton.addActionListener(new ActionListener() {
@@ -189,10 +247,80 @@ public class App {
                     newProjectDialog.dispose();
                 }
             });
+
             buttonPanel.add(cancelButton);
             newProjectDialog.add(buttonPanel, BorderLayout.SOUTH);
 
             newProjectDialog.setVisible(true);
+        }
+
+        private void showEditProjectDialog() {
+            int selectedIndex = projectList.getSelectedIndex();
+            if (selectedIndex != -1) {
+                Project project = projects.get(selectedIndex);
+                // Open a dialog similar to the "New Project" dialog, but pre-filled with the selected project's details
+                JDialog editDialog = new JDialog(mainFrame, "Edit Project", true);
+                editDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                editDialog.setLayout(new BorderLayout());
+
+                JPanel inputPanel = new JPanel();
+                inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+                inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+                JLabel nameLabel = new JLabel("Name:");
+                nameLabel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(nameLabel);
+
+                JTextField nameField = new JTextField(project.getName());
+                nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, nameField.getPreferredSize().height));
+                nameField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(nameField);
+
+                JLabel dueDateLabel = new JLabel("Due Date (yyyy-MM-dd):");
+                dueDateLabel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(dueDateLabel);
+
+                JTextField dueDateField = new JTextField(project.getDueDate().format(dateFormatter));
+                dueDateField.setMaximumSize(new Dimension(Integer.MAX_VALUE, dueDateField.getPreferredSize().height));
+                dueDateField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(dueDateField);
+
+                JLabel tasksLabel = new JLabel("Tasks:");
+                tasksLabel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(tasksLabel);
+
+                JTextField tasksField = new JTextField(Integer.toString(project.getTasks()));
+                tasksField.setMaximumSize(new Dimension(Integer.MAX_VALUE, tasksField.getPreferredSize().height));
+                tasksField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(tasksField);
+
+                JButton saveButton = new JButton("Save");
+                saveButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        String name = nameField.getText();
+                        try {
+                            LocalDate dueDate = LocalDate.parse(dueDateField.getText(), dateFormatter);
+                            project.setName(name);
+                            project.setDueDate(dueDate);
+                            project.setTasks(Integer.parseInt(tasksField.getText()));
+                            listModel.set(selectedIndex, name); 
+                            saveProjects();
+                            editDialog.dispose();
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(editDialog, "Invalid date format. Please use the format dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                });
+                saveButton.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+                inputPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                inputPanel.add(saveButton);
+
+                editDialog.add(inputPanel, BorderLayout.CENTER);
+                editDialog.pack();
+                editDialog.setLocationRelativeTo(mainFrame);
+                editDialog.setVisible(true);
+            }
         }
 
         private void showProjectDetails() {
@@ -200,66 +328,10 @@ public class App {
             if (selectedIndex != -1) {
                 Project project = projects.get(selectedIndex);
                 daysLeftLabel.setText("Days Left: " + project.getDaysLeft());
-                tasksLeftLabel.setText("Tasks Left: " + project.getTasksLeft());
-                ratioLabel.setText("Task/Days Ratio: " + project.getTaskDayRatio());
-            }
-        }
-
-        private void showNewTaskDialog() {
-            int selectedIndex = projectList.getSelectedIndex();
-            if (selectedIndex != -1) {
-                Project project = projects.get(selectedIndex);
-                JDialog newTaskDialog = new JDialog(mainFrame, "New Task", true);
-                newTaskDialog.setSize(300, 200);
-                newTaskDialog.setLayout(new BorderLayout());
-
-                JPanel inputPanel = new JPanel();
-                inputPanel.setLayout(null);
-                JLabel nameLabel = new JLabel("Name:");
-                nameLabel.setBounds(10, 10, 80, 25);
-                inputPanel.add(nameLabel);
-                JTextField nameField = new JTextField();
-                nameField.setBounds(100, 10, 160, 25);
-                inputPanel.add(nameField);
-                JLabel dueDateLabel = new JLabel("Due Date:");
-                dueDateLabel.setBounds(10, 40, 80, 25);
-                inputPanel.add(dueDateLabel);
-                JTextField dueDateField = new JTextField();
-                dueDateField.setBounds(100, 40, 160, 25);
-                inputPanel.add(dueDateField);
-                newTaskDialog.add(inputPanel, BorderLayout.CENTER);
-
-                JPanel buttonPanel = new JPanel();
-                JButton createButton = new JButton("Create");
-                createButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        String name = nameField.getText();
-                        String dueDateString = dueDateField.getText();
-                        try {
-                            LocalDate dueDate = LocalDate.parse(dueDateString, dateFormatter);
-                            Task task = new Task(name, dueDate);
-                            project.addTask(task);
-                            saveProjects();
-                            newTaskDialog.dispose();
-                            showProjectDetails();
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(newTaskDialog, "Invalid date format. Please use the format dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
-                });
-                buttonPanel.add(createButton);
-                JButton cancelButton = new JButton("Cancel");
-                cancelButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        newTaskDialog.dispose();
-                    }
-                });
-                buttonPanel.add(cancelButton);
-                newTaskDialog.add(buttonPanel, BorderLayout.SOUTH);
-
-                newTaskDialog.setVisible(true);
+                tasksLeftLabel.setText("Tasks Left: " + project.getTasks());
+                double ratio = project.getTaskDayRatio();
+                String formattedRatio = String.format("%.1f", ratio);
+                ratioLabel.setText("Task/Days Ratio: " + formattedRatio);
             }
         }
 
@@ -275,12 +347,6 @@ public class App {
                         LocalDate dueDate = LocalDate.parse(parts[1], dateFormatter);
                         int tasks = Integer.parseInt(parts[2]);
                         Project project = new Project(name, dueDate, tasks);
-                        for (int i = 3; i < parts.length; i += 2) {
-                            String taskName = parts[i];
-                            LocalDate taskDueDate = LocalDate.parse(parts[i + 1], dateFormatter);
-                            Task task = new Task(taskName, taskDueDate);
-                            project.addTask(task);
-                        }
                         projects.add(project);
                     }
                     reader.close();
@@ -296,9 +362,6 @@ public class App {
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file));
                 for (Project project : projects) {
                     writer.write(project.getName() + "," + dateFormatter.format(project.getDueDate()) + "," + project.getTasks());
-                    for (Task task : project.getTasksList()) {
-                        writer.write("," + task.getName() + "," + dateFormatter.format(task.getDueDate()));
-                    }
                     writer.newLine();
                 }
                 writer.close();
@@ -309,13 +372,24 @@ public class App {
         
         
 
-        public static void main(String[] args) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    new ProjectManager();
-                }
-            });
+public static void main(String[] args) {
+    try {
+        UIManager.setLookAndFeel(new FlatDarkLaf());
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+            new ProjectManager();
         }
+    });
+}
+
     }
 }
+
+// TODO: Add the possibility to edit a project
+// TODO: add a menu bar with a "New Project" option
+// TODO: add a menu bar with a "Delete Project" option
+// TODO: add a menu bar with a "Edit Project" option
