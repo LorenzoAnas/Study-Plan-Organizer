@@ -82,7 +82,7 @@ public class App {
 
             // Project Details
             JPanel projectDetailsPanel = new JPanel();
-            projectDetailsPanel.setLayout(new BoxLayout(projectDetailsPanel, BoxLayout.Y_AXIS));
+            projectDetailsPanel.setLayout(new BorderLayout());
 
             JPanel labelsPanel = new JPanel();
             labelsPanel.setLayout(new BoxLayout(labelsPanel, BoxLayout.Y_AXIS));
@@ -117,11 +117,11 @@ public class App {
             labelsPanel.add(ratioLabel);
             labelsPanel.add(addProjectButton);
 
-            projectDetailsPanel.add(labelsPanel, BorderLayout.EAST);
+            projectDetailsPanel.add(labelsPanel, BorderLayout.CENTER);
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(projectList), projectDetailsPanel);
             splitPane.setOneTouchExpandable(true);
-            splitPane.setDividerLocation(200);
+            splitPane.setDividerLocation(100);
             mainFrame.add(splitPane, BorderLayout.CENTER);   
 
             // Date Display
@@ -299,3 +299,8 @@ public static void main(String[] args) {
 
     }
 }
+
+// TODO: Add the possibility to edit a project
+// TODO: add a menu bar with a "New Project" option
+// TODO: add a menu bar with a "Delete Project" option
+// TODO: add a menu bar with a "Edit Project" option
