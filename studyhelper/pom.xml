@@ -49,7 +49,7 @@
           <configuration>
             <archive>
               <manifest>
-                <mainClass>com.spo.App</mainClass>
+                <mainClass>com.spo.App$ProjectManager</mainClass>
               </manifest>
             </archive>
           </configuration>

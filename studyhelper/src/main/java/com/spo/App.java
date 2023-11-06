@@ -389,7 +389,6 @@ public static void main(String[] args) {
     }
 }
 
-// TODO: Add the possibility to edit a project
 // TODO: add a menu bar with a "New Project" option
 // TODO: add a menu bar with a "Delete Project" option
 // TODO: add a menu bar with a "Edit Project" option
