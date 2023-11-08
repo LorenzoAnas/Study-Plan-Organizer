@@ -38,11 +38,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
-import com.formdev.flatlaf.FlatDarkLaf;
 import com.spo.model.Project;
 
 /**
@@ -373,11 +371,6 @@ public class App {
         
 
 public static void main(String[] args) {
-    try {
-        UIManager.setLookAndFeel(new FlatDarkLaf());
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
     SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
@@ -389,7 +382,6 @@ public static void main(String[] args) {
     }
 }
 
-// TODO: Add the possibility to edit a project
 // TODO: add a menu bar with a "New Project" option
 // TODO: add a menu bar with a "Delete Project" option
 // TODO: add a menu bar with a "Edit Project" option
